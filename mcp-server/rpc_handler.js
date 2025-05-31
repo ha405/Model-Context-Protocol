@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { githubRepo } from './config.js';
 
-const supportedExtensions = ['.txt', '.py'];
+const supportedExtensions = ['.py'];
 
 const githubApiUrl = `https://api.github.com/repos/${githubRepo.owner}/${githubRepo.repo}/git/trees/${githubRepo.branch}?recursive=1`;
 const rawBaseUrl = `https://raw.githubusercontent.com/${githubRepo.owner}/${githubRepo.repo}/${githubRepo.branch}/`;

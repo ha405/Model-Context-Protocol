@@ -1,5 +1,5 @@
 export const githubRepo = {
   owner: 'ha405',
-  repo: 'AutoML',
+  repo: 'Compression-Framework-for-EdgeAI',
   branch: 'main'
 };
