@@ -1,16 +1,31 @@
-# client.py
 import requests
 import json
 from google import genai
 import os
+import argparse
+from tqdm import tqdm
 
-client = genai.Client(api_key="AIzaSyBoAFOxBSX1nxEF8lNuhJudPiHVTCRNK8Q")
+api_key = os.getenv('GEMINI_API_KEY')
+if not api_key:
+    raise ValueError("GEMINI_API_KEY environment variable is not set")
 
-def generate_response(contents):
+client = genai.Client(api_key=api_key)
+
+def summarize_all_files(file_data, repo_name=None):
+    title = f"Repository: {repo_name}\n\n" if repo_name else ""
+    prompt = title + "Summarize the purpose and functionality of the following codebase:\n\n"
+
+    for file in file_data:
+        prompt += f"---\nFile: {file['name']}\nContent:\n{file['content']}\n\n"
+
     response = client.models.generate_content(
-        model="gemini-2.0-flash", contents=contents
+        model="gemini-2.0-flash", contents=[prompt]
     )
     return response.text.strip()
+
+def generate_readme_from_summary(summary, repo_name=None):
+    title = f"# {repo_name} Repository\n\n" if repo_name else "# Project README\n\n"
+    return title + summary
 
 class MCPClient:
     def __init__(self, url):
@@ -25,31 +40,44 @@ class MCPClient:
         }
         if params is not None:
             req["params"] = params
-        response = requests.post(self.url, json=req)
+        res = requests.post(self.url, json=req)
         self.request_id += 1
-        return response.json()
+        return res.json()
 
 def main():
-    server_url = "http://localhost:4000/rpc"
-    mcp = MCPClient(server_url)
+    parser = argparse.ArgumentParser(description="Generate README from MCP repo")
+    parser.add_argument("--server-url", type=str, default="http://localhost:4000/rpc")
+    parser.add_argument("--owner", type=str, required=True)
+    parser.add_argument("--repo", type=str, required=True)
+    parser.add_argument("--branch", type=str, default="main")
+    parser.add_argument("--output", type=str, default="GENERATED_README.md")
+    parser.add_argument("--repo-name", type=str)
+    args = parser.parse_args()
+
+    mcp = MCPClient(args.server_url)
+    mcp.send_request("initialize", {"owner": args.owner, "repo": args.repo, "branch": args.branch})
 
     list_resp = mcp.send_request("resources/list")
     files = list_resp.get("result", [])
 
-    combined_content = ""
-    for file in files:
+    file_data = []
+    print("📥 Fetching all files...")
+    for file in tqdm(files, desc="Fetching files", unit="file"):
         uri = file["uri"]
         fetch_resp = mcp.send_request("resources/fetch", {"uri": uri})
         content = fetch_resp["result"]["content"]
-        combined_content += f"\n\n### {file['name']}\n\n{content}"
+        file_data.append({"name": file["name"], "content": content})
 
-    prompt = f"Generate a comprehensive README in Markdown format for this repository. Use the following file contents as reference:\n{combined_content}"
-    readme_text = generate_response([prompt])
+    print("🧠 Summarizing codebase...")
+    summary = summarize_all_files(file_data, repo_name=args.repo_name)
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(script_dir, "GENERATED_README.md")
+    print("📝 Generating README...")
+    readme_text = generate_readme_from_summary(summary, repo_name=args.repo_name)
+    output_path = os.path.join(os.getcwd(), args.output)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(readme_text)
+
+    print(f"✅ README generated: {output_path}")
 
 if __name__ == "__main__":
     main()
