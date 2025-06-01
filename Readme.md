@@ -92,6 +92,7 @@ cd mcp-server
 node server.js
 ```
 The server will start on http://localhost:4000 by default.
+You can deploy on railway too; the mcp-server directory contains docker file. set root as mcp-server and start deployment
 
 ### Generating Documentation
 
