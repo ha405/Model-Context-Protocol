@@ -46,7 +46,7 @@ class MCPClient:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate README from MCP repo")
-    parser.add_argument("--server-url", type=str, default="http://localhost:4000/rpc")
+    parser.add_argument("--server-url", type=str, default="http://model-context-protocol-production.up.railway.app/rpc")
     parser.add_argument("--owner", type=str, required=True)
     parser.add_argument("--repo", type=str, required=True)
     parser.add_argument("--branch", type=str, default="main")

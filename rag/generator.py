@@ -13,7 +13,7 @@ def generate_answer(prompt):
     return resp.text.strip()
 
 class RAGGenerator:
-    def __init__(self, server_url="http://localhost:4000/rpc", chunk_size=300, overlap=50):
+    def __init__(self, server_url="http://model-context-protocol-production.up.railway.app/rpc", chunk_size=300, overlap=50):
         self.retriever = EmbeddingRetriever(server_url, chunk_size, overlap)
 
     def initialize(self, owner, repo, branch="main"):

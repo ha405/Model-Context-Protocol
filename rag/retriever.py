@@ -2,7 +2,7 @@
 import requests
 
 class MCPClient:
-    def __init__(self, url="http://localhost:4000/rpc"):
+    def __init__(self, url="http://model-context-protocol-production.up.railway.app/rpc"):
         self.url = url
         self.request_id = 1
 
@@ -15,7 +15,7 @@ class MCPClient:
         return res.json()
 
 class Retriever:
-    def __init__(self, server_url="http://localhost:4000/rpc"):
+    def __init__(self, server_url="http://model-context-protocol-production.up.railway.app/rpc"):
         self.mcp = MCPClient(server_url)
 
     def initialize(self, owner, repo, branch="main"):
